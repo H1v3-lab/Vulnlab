@@ -22,6 +22,13 @@ const puppeteer    = require('puppeteer-core');
 const app  = express();
 const PORT = 3000;
 
+const BASE_PATH = process.env.BASE_PATH || '/c02';
+
+function u(p) {
+  if (!p.startsWith('/')) p = '/' + p;
+  return BASE_PATH + p;
+}
+
 const CHROMIUM = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser';
 
 // Domaines et port autorisés pour le bot admin (restriction anti-SSRF)
@@ -68,23 +75,23 @@ function escHtml(s) {
 
 function renderPage({ title, body, user }) {
   const links = user
-    ? `<a href="dashboard">Accueil</a><a href="search">Recherche</a><a href="archives">Archives</a><a href="report">Signaler</a><a href="logs">Logs</a>`
+    ? `<a href="${u('/dashboard')}">Accueil</a><a href="${u('/search')}">Recherche</a><a href="${u('/archives')}">Archives</a><a href="${u('/report')}">Signaler</a><a href="${u('/logs')}">Logs</a>`
     : '';
   const auth = user
     ? `<div class="nav-user">
          <span class="nav-username">👤 ${escHtml(user.username)}</span>
-         <a class="btn-logout" href="logout">Déconnexion</a>
+         <a class="btn-logout" href="${u('/logout')}">Déconnexion</a>
        </div>`
     : `<div class="nav-auth-btns">
-         <a class="btn-nav-login" href="login">Connexion</a>
-         <a class="btn-nav-reg" href="register">Inscription</a>
+         <a class="btn-nav-login" href="${u('/login')}">Connexion</a>
+         <a class="btn-nav-reg" href="${u('/register')}">Inscription</a>
        </div>`;
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escHtml(title)} — Floral Corner</title>
-<link rel="stylesheet" href="public/css/style.css">
+<link rel="stylesheet" href="${u('/public/css/style.css')}">
 <style>
 .auth-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 110px);padding:24px}
 .auth-card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.10);padding:44px 48px;width:100%;max-width:420px}
@@ -122,7 +129,7 @@ function renderPage({ title, body, user }) {
 <body>
 <nav class="navbar">
   <div class="nav-inner">
-    <a class="brand" href="dashboard">🌸 Floral Corner</a>
+    <a class="brand" href="${u('/dashboard')}">🌸 Floral Corner</a>
     <div class="nav-links">${links}</div>
     ${auth}
   </div>
@@ -134,12 +141,12 @@ function renderPage({ title, body, user }) {
 }
 
 function requireAuth(req, res, next) {
-  if (!currentUser(req)) return res.redirect('login');
+  if (!currentUser(req)) return res.redirect(u('/login'));
   next();
 }
 
 // ── GET / → redirect to /dashboard ──────────
-app.get('/', (req, res) => res.redirect('dashboard'));
+app.get('/', (req, res) => res.redirect(u('/dashboard')));
 
 // ── REGISTER ────────────────────────────────
 app.get('/register', (req, res) => {
@@ -149,24 +156,24 @@ app.get('/register', (req, res) => {
     <h1>Créer un compte</h1>
     <p class="auth-subtitle">Rejoignez Floral Corner pour lire nos articles</p>
     ${err ? `<div class="alert-err">⚠ ${escHtml(err)}</div>` : ''}
-    <form method="POST" action="register">
+    <form method="POST" action="${u('/register')}">
       <label>Nom d'utilisateur</label>
       <input type="text" name="username" placeholder="ex: alice" required autocomplete="off">
       <label>Mot de passe</label>
       <input type="password" name="password" placeholder="••••••••" required>
       <button type="submit" class="btn-primary">Créer mon compte</button>
     </form>
-    <p class="auth-switch">Déjà un compte ? <a href="login">Se connecter</a></p>
+    <p class="auth-switch">Déjà un compte ? <a href="${u('/login')}">Se connecter</a></p>
   </div></div>`}));
 });
 
 app.post('/register', (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password)  return res.redirect('register?err=Champs+manquants');
-  if (username === 'admin')    return res.redirect('register?err=Ce+nom+est+réservé');
-  if (accounts[username])      return res.redirect('register?err=Nom+déjà+utilisé');
+  if (!username || !password)  return res.redirect(u('/register') + '?err=Champs+manquants');
+  if (username === 'admin')    return res.redirect(u('/register') + '?err=Ce+nom+est+réservé');
+  if (accounts[username])      return res.redirect(u('/register') + '?err=Nom+déjà+utilisé');
   accounts[username] = { password, token: genToken() };
-  res.redirect('login?registered=1');
+  res.redirect(u('/login') + '?registered=1');
 });
 
 // ── LOGIN ────────────────────────────────────
@@ -180,14 +187,14 @@ app.get('/login', (req, res) => {
     <p class="auth-subtitle">Accédez à votre espace Floral Corner</p>
     ${ok}
     ${err ? `<div class="alert-err">⚠ ${escHtml(err)}</div>` : ''}
-    <form method="POST" action="login">
+    <form method="POST" action="${u('/login')}">
       <label>Nom d'utilisateur</label>
       <input type="text" name="username" placeholder="ex: alice" required autocomplete="off">
       <label>Mot de passe</label>
       <input type="password" name="password" placeholder="••••••••" required>
       <button type="submit" class="btn-primary">Se connecter</button>
     </form>
-    <p class="auth-switch">Pas encore de compte ? <a href="register">S'inscrire</a></p>
+    <p class="auth-switch">Pas encore de compte ? <a href="${u('/register')}">S'inscrire</a></p>
   </div></div>`}));
 });
 
@@ -195,16 +202,17 @@ app.post('/login', (req, res) => {
   const { username, password } = req.body;
   const acc = accounts[username];
   if (!acc || acc.password !== password)
-    return res.redirect('login?err=Identifiants+incorrects');
-  res.cookie('session',  acc.token, { path: '/', httpOnly: true });
-  res.cookie('username', username,  { path: '/', httpOnly: false });
-  res.redirect('dashboard');
+    return res.redirect(u('/login') + '?err=Identifiants+incorrects');
+  res.cookie('session',  acc.token, { path: BASE_PATH, httpOnly: true });
+  res.cookie('username', username,  { path: BASE_PATH, httpOnly: false });
+  res.redirect(u('/dashboard'));
 });
 
 app.get('/logout', (req, res) => {
-  res.clearCookie('session');
-  res.clearCookie('username');
-  res.redirect('login');
+  res.clearCookie('session',       { path: BASE_PATH });
+  res.clearCookie('username',      { path: BASE_PATH });
+  res.clearCookie('admin_session', { path: BASE_PATH });
+  res.redirect(u('/login'));
 });
 
 // ── DASHBOARD ────────────────────────────────
@@ -222,13 +230,13 @@ app.get('/dashboard', requireAuth, (req, res) => {
       les plus diversifiées au monde avec plus de 25 000 espèces répertoriées.
       Leur culture peut sembler délicate, mais quelques règles simples suffisent
       pour les faire s'épanouir chez vous.</p>
-      <p>Dans nos <a href="archives">archives</a>, l'admin partage ses notes de culture
+      <p>Dans nos <a href="${u('/archives')}">archives</a>, l'admin partage ses notes de culture
       exclusives — réservées aux membres avec accès spécial.</p>
     </div>
     <div class="info-tip">
-      🌸 Utilisez la <a href="search" style="color:#1e40af;font-weight:500">recherche</a>
+      🌸 Utilisez la <a href="${u('/search')}" style="color:#1e40af;font-weight:500">recherche</a>
       pour explorer nos articles botaniques.
-      Vous pouvez aussi <a href="report" style="color:#1e40af;font-weight:500">signaler</a>
+      Vous pouvez aussi <a href="${u('/report')}" style="color:#1e40af;font-weight:500">signaler</a>
       un contenu à l'équipe d'administration.
     </div>
   </div>`}));
@@ -252,7 +260,7 @@ app.get('/search', requireAuth, (req, res) => {
   res.send(renderPage({ title: 'Recherche', user, body: `
   <div class="page-wrap">
     <h1>Recherche d'articles</h1>
-    <form class="search-form" method="GET" action="search">
+    <form class="search-form" method="GET" action="${u('/search')}">
       <input type="text" name="q" placeholder="ex: orchidée, rose, tulipe…"
              value="${escHtml(q)}" class="search-input">
       <button type="submit" class="btn-submit">Rechercher</button>
@@ -307,7 +315,7 @@ app.get('/report', requireAuth, (req, res) => {
     ${err ? `<div class="alert-err" style="margin-top:16px">⚠ ${escHtml(err)}</div>` : ''}
     ${ok  ? `<div class="alert-ok"  style="margin-top:16px">✓ ${escHtml(ok)}</div>`  : ''}
     <div class="report-form">
-      <form method="POST" action="report">
+      <form method="POST" action="${u('/report')}">
         <label>URL de la page à signaler</label>
         <input type="text" name="url" placeholder="http://localhost:3000/search?q=…" required>
         <button type="submit" class="btn-primary">Envoyer le signalement</button>
@@ -326,27 +334,27 @@ app.post('/report', requireAuth, async (req, res) => {
   const url  = (req.body.url || '').trim();
 
   if (!url) {
-    return res.redirect('report?err=URL+manquante');
+    return res.redirect(u('/report') + '?err=URL+manquante');
   }
 
   let parsedUrl;
   try {
     parsedUrl = new URL(url);
   } catch {
-    return res.redirect('report?err=URL+invalide+(format+incorrect)');
+    return res.redirect(u('/report') + '?err=URL+invalide+(format+incorrect)');
   }
 
   if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-    return res.redirect('report?err=Protocole+non+autorisé+(http/https+uniquement)');
+    return res.redirect(u('/report') + '?err=Protocole+non+autorisé+(http/https+uniquement)');
   }
 
   // Restriction anti-SSRF : le bot ne visite que les URLs sur localhost:3000
   if (!BOT_ALLOWED_HOSTS.has(parsedUrl.hostname)) {
-    return res.redirect('report?err=Hôte+non+autorisé+(localhost+uniquement)');
+    return res.redirect(u('/report') + '?err=Hôte+non+autorisé+(localhost+uniquement)');
   }
   const urlPort = parsedUrl.port || (parsedUrl.protocol === 'https:' ? '443' : '80');
   if (urlPort !== BOT_ALLOWED_PORT) {
-    return res.redirect(`report?err=Port+non+autorisé+(port+${BOT_ALLOWED_PORT}+uniquement)`);
+    return res.redirect(u('/report') + `?err=Port+non+autorisé+(port+${BOT_ALLOWED_PORT}+uniquement)`);
   }
 
   console.log(`[C02-bot] Admin visite : ${url}`);
@@ -383,11 +391,11 @@ app.post('/report', requireAuth, async (req, res) => {
     await browser.close();
     browser = null;
 
-    res.redirect('report?ok=L\'admin+a+visité+l\'URL.+Vérifiez+vos+logs.');
+    res.redirect(u('/report') + '?ok=L\'admin+a+visité+l\'URL.+Vérifiez+vos+logs.');
   } catch (e) {
     if (browser) { try { await browser.close(); } catch {} }
     console.error('[C02-bot] Erreur :', e.message);
-    res.redirect(`report?err=${encodeURIComponent('Erreur du bot : ' + e.message.slice(0, MAX_ERROR_MSG_LEN))}`);
+    res.redirect(u('/report') + `?err=${encodeURIComponent('Erreur du bot : ' + e.message.slice(0, MAX_ERROR_MSG_LEN))}`);
   }
 });
 
@@ -425,7 +433,7 @@ app.get('/logs', requireAuth, (req, res) => {
       Données reçues sur <code>/collect</code> (simule votre serveur d'écoute).
     </p>
     ${entries}
-    ${collected.length ? `<form method="GET" action="logs" style="margin-top:16px">
+    ${collected.length ? `<form method="GET" action="${u('/logs')}" style="margin-top:16px">
       <button type="submit" class="btn-submit" style="font-size:13px;padding:8px 18px">↺ Rafraîchir</button>
     </form>` : ''}
   </div>`}));
