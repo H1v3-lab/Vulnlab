@@ -2,9 +2,27 @@
 from flask import Flask, request, render_template, render_template_string
 from markupsafe import Markup
 import datetime
+import logging
+import os
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static'),
+    static_url_path='/static',
+)
 app.secret_key = 'vulnlab-c03-not-secret'
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logger.exception("Unhandled exception: %s", e)
+    return "500 Internal Server Error", 500
 
 # Le template du rapport — body est injecté comme variable Jinja2
 # ⚠️ VULNÉRABILITÉ : body est rendu via render_template_string, donc
