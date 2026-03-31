@@ -58,7 +58,7 @@
             </label>
             <!-- ⚠️  Ce champ est injecté directement dans render_template_string -->
             <textarea id="body" name="body" rows="8"
-                      placeholder="Rédigez votre rapport ici…&#10;&#10;Astuce : les expressions {{ }} sont interprétées par Jinja2.">{{ request.form.get('body', '') }}</textarea>
+                      placeholder="Rédigez votre rapport ici…&#10;&#10;Astuce : les expressions {{ '{{ }}' }} sont interprétées par Jinja2.">{{ request.form.get('body', '') }}</textarea>
           </div>
           <button type="submit" class="btn-submit">
             Générer le rapport →
