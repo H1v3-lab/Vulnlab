@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReportGen — Générateur de rapports</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a class="brand" href="./">ReportGen</a>
+    <div class="nav-links">
+      <a href="./" class="active">Générateur</a>
+      <a href="history">Historique</a>
+      <a href="hints">Hints</a>
+    </div>
+    <span class="nav-badge">VulnLab C03 — SSTI</span>
+  </div>
+</nav>
+
+<main>
+  <div class="page-wrap two-col">
+
+    <!-- ── Formulaire ── -->
+    <div class="col-form">
+      <div class="card">
+        <div class="card-header">
+          <h1>Générateur de rapports</h1>
+          <p>Remplissez les champs ci-dessous. Le rapport sera rendu via le moteur de templates Jinja2.</p>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-error">
+          <span class="alert-icon">✕</span>
+          <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="./">
+          <div class="form-group">
+            <label for="title">Titre du rapport</label>
+            <input type="text" id="title" name="title"
+                   placeholder="ex: Bilan mensuel octobre 2024"
+                   value="{{ request.form.get('title', '') }}">
+          </div>
+          <div class="form-group">
+            <label for="author">Auteur</label>
+            <input type="text" id="author" name="author"
+                   placeholder="ex: Jean Dupont"
+                   value="{{ request.form.get('author', '') }}">
+          </div>
+          <div class="form-group">
+            <label for="body">
+              Corps du rapport
+              <span class="hint-inline">⚠ Le contenu est rendu via Jinja2</span>
+            </label>
+            <!-- ⚠️  Ce champ est injecté directement dans render_template_string -->
+            <textarea id="body" name="body" rows="8"
+                      placeholder="Rédigez votre rapport ici…&#10;&#10;Astuce : les expressions {{ }} sont interprétées par Jinja2.">{{ request.form.get('body', '') }}</textarea>
+          </div>
+          <button type="submit" class="btn-submit">
+            Générer le rapport →
+          </button>
+        </form>
+      </div>
+
+      <!-- Info box pédagogique -->
+      <div class="info-box">
+        <div class="info-icon">ℹ</div>
+        <div>
+          <strong>Comment ça marche</strong>
+          <p>Le serveur utilise <code>render_template_string()</code> avec vos inputs directement interpolés.
+          Le moteur Jinja2 évalue les expressions <code>{{ "{{" }} ... {{ "}}" }}</code> avant d'envoyer la réponse.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Prévisualisation ── -->
+    <div class="col-preview">
+      <div class="preview-label">Prévisualisation du rapport</div>
+      <div class="preview-empty">
+        <div class="empty-icon">📄</div>
+        <p>Après soumission, le rapport s'affiche dans une nouvelle page.<br>
+        Utilisez le bouton retour pour revenir au formulaire.</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    ReportGen v2.1 &nbsp;·&nbsp;
+    <span class="vuln-badge">VulnLab C03 — SSTI Jinja2</span> &nbsp;·&nbsp;
+    <a href="hints">Hints</a>
+  </div>
+</footer>
+
+</body>
+</html>

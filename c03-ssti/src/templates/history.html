@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReportGen — Historique</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a class="brand" href="./">ReportGen</a>
+    <div class="nav-links">
+      <a href="./">Générateur</a>
+      <a href="history" class="active">Historique</a>
+      <a href="hints">Hints</a>
+    </div>
+    <span class="nav-badge">VulnLab C03 — SSTI</span>
+  </div>
+</nav>
+
+<main>
+  <div class="page-wrap page-wrap--narrow">
+    <h1>Rapports récents</h1>
+    <p class="subtitle" style="margin-bottom:28px">{{ reports|length }} rapports en base</p>
+
+    {% for r in reports %}
+    <div class="history-card">
+      <div class="history-meta">
+        <span class="history-id">#{{ r.id }}</span>
+        <span class="history-date">{{ r.date }}</span>
+      </div>
+      <h3 class="history-title">{{ r.title }}</h3>
+      <p class="history-author">Par <strong>{{ r.author }}</strong></p>
+      <p class="history-body">{{ r.body }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    ReportGen v2.1 &nbsp;·&nbsp;
+    <span class="vuln-badge">VulnLab C03 — SSTI Jinja2</span>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VulnLab — Training Ground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0c0f;
+    --bg2:      #0f1217;
+    --bg3:      #151a22;
+    --border:   rgba(255,255,255,0.06);
+    --border2:  rgba(255,255,255,0.12);
+    --text:     #c8d0dc;
+    --muted:    #5a6475;
+    --mono:     'Share Tech Mono', monospace;
+    --sans:     'Outfit', sans-serif;
+
+    --coral:    #e8593c;
+    --purple:   #8b72e8;
+    --amber:    #e8a820;
+    --teal:     #2ecfa8;
+    --blue:     #4a9eff;
+    --pink:     #d45ea0;
+    --green:    #5db84a;
+    --red:      #e84a4a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Accent glow top-left */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; left: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(232,89,60,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 0 24px;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 36px; height: 36px;
+    border: 1px solid var(--coral);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--coral);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .logo-mark::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(232,89,60,0.08);
+  }
+
+  .logo-text {
+    font-family: var(--mono);
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    color: #e8e8e8;
+  }
+  .logo-text span { color: var(--coral); }
+
+  .header-badge {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .header-badge b { color: var(--teal); font-weight: 400; }
+
+  /* ── Section title ── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Stats bar ── */
+  .stats {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 48px;
+  }
+  .stat {
+    flex: 1;
+    padding: 20px 24px;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-lbl {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* ── Challenge grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+    margin-bottom: 60px;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover {
+    border-color: var(--border2);
+    background: var(--bg3);
+    transform: translateY(-2px);
+  }
+
+  /* Color accent left bar */
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent, var(--muted));
+    border-radius: 10px 0 0 10px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .card:hover::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .card-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+    padding: 3px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .card-info { flex: 1; }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e4e8f0;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .card-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: #7a8494;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .diff {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .diff.easy   { background: rgba(93,184,74,0.12); color: var(--green); border: 1px solid rgba(93,184,74,0.25); }
+  .diff.medium { background: rgba(232,168,32,0.12); color: var(--amber); border: 1px solid rgba(232,168,32,0.25); }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  footer span { color: var(--coral); }
+
+  /* blinking cursor */
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--coral);
+    vertical-align: middle;
+    margin-left: 4px;
+    animation: blink 1s step-end infinite;
+  }
+
+  @media (max-width: 600px) {
+    .stats { flex-direction: column; }
+    .stat { border-right: none; border-bottom: 1px solid var(--border); }
+    .stat:last-child { border-bottom: none; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-mark">V/</div>
+    <div class="logo-text">Vuln<span>Lab</span></div>
+    <div class="header-badge">env: <b>local</b> &nbsp;·&nbsp; v1.0</div>
+  </header>
+
+  <!-- Stats -->
+  <div class="section-label">Tableau de bord</div>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" style="color:var(--coral)">15</div>
+      <div class="stat-lbl">Challenges disponibles</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" style="color:var(--teal)">6</div>
+      <div class="stat-lbl">Catégories OWASP</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" style="color:var(--purple)">4</div>
+      <div class="stat-lbl">Stacks techniques</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" style="color:var(--amber)">∞</div>
+      <div class="stat-lbl">Tentatives autorisées</div>
+    </div>
+  </div>
+
+  <!-- Challenges -->
+  <div class="section-label">Challenges</div>
+  <div class="grid">
+
+    <!-- C01 SQLi -->
+    <a class="card" href="/c01/" style="--accent:var(--coral)">
+      <div class="card-top">
+        <div class="card-num">C01</div>
+        <div class="card-info">
+          <div class="card-title">SQL Injection</div>
+          <div class="card-sub">PHP 8 · MySQL 8</div>
+        </div>
+      </div>
+      <p class="card-desc">Page de login avec requête SQL non paramétrée. Bypassez l'authentification et exfiltrez la base via UNION-based injection.</p>
+      <div class="card-footer">
+        <span class="tag">A03:2021</span>
+        <span class="tag">sqlmap</span>
+        <span class="tag">UNION</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C02 XSS -->
+    <a class="card" href="/c02/" style="--accent:var(--coral)">
+      <div class="card-top">
+        <div class="card-num">C02</div>
+        <div class="card-info">
+          <div class="card-title">Cross-Site Scripting</div>
+          <div class="card-sub">Node.js · Express</div>
+        </div>
+      </div>
+      <p class="card-desc">Forum avec XSS stored dans les commentaires et XSS reflected dans la recherche. Volez le cookie admin.</p>
+      <div class="card-footer">
+        <span class="tag">A03:2021</span>
+        <span class="tag">stored</span>
+        <span class="tag">reflected</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C03 SSTI -->
+    <a class="card" href="/c03/" style="--accent:var(--coral)">
+      <div class="card-top">
+        <div class="card-num">C03</div>
+        <div class="card-info">
+          <div class="card-title">Template Injection (SSTI)</div>
+          <div class="card-sub">Python · Flask · Jinja2</div>
+        </div>
+      </div>
+      <p class="card-desc">Page de génération de rapport qui injecte l'input utilisateur dans un template Jinja2. Obtenez une RCE.</p>
+      <div class="card-footer">
+        <span class="tag">A03:2021</span>
+        <span class="tag">Jinja2</span>
+        <span class="tag">RCE</span>
+        <span class="diff medium">Intermédiaire</span>
+      </div>
+    </a>
+
+    <!-- C04 Broken Auth -->
+    <a class="card" href="/c04/" style="--accent:var(--purple)">
+      <div class="card-top">
+        <div class="card-num">C04</div>
+        <div class="card-info">
+          <div class="card-title">Broken Authentication</div>
+          <div class="card-sub">PHP · Sessions</div>
+        </div>
+      </div>
+      <p class="card-desc">Session ID prévisible et gestion de rôle côté client via cookie non signé. Devenez admin sans mot de passe.</p>
+      <div class="card-footer">
+        <span class="tag">A07:2021</span>
+        <span class="tag">sessions</span>
+        <span class="tag">cookies</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C05 Brute force -->
+    <a class="card" href="/c05/" style="--accent:var(--purple)">
+      <div class="card-top">
+        <div class="card-num">C05</div>
+        <div class="card-info">
+          <div class="card-title">Brute Force — No Rate Limit</div>
+          <div class="card-sub">Node.js · Express</div>
+        </div>
+      </div>
+      <p class="card-desc">Endpoint de login sans limitation de tentatives ni lockout. Utilisez ffuf ou Hydra pour trouver le mot de passe.</p>
+      <div class="card-footer">
+        <span class="tag">A07:2021</span>
+        <span class="tag">hydra</span>
+        <span class="tag">ffuf</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C06 IDOR Auth -->
+    <a class="card" href="/c06/" style="--accent:var(--purple)">
+      <div class="card-top">
+        <div class="card-num">C06</div>
+        <div class="card-info">
+          <div class="card-title">IDOR — Accès profil</div>
+          <div class="card-sub">Python · Flask</div>
+        </div>
+      </div>
+      <p class="card-desc">API de profils utilisateurs exposant les données par ID entier séquentiel sans vérification d'appartenance.</p>
+      <div class="card-footer">
+        <span class="tag">A01:2021</span>
+        <span class="tag">IDOR</span>
+        <span class="tag">API</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C07 Upload -->
+    <a class="card" href="/c07/" style="--accent:var(--amber)">
+      <div class="card-top">
+        <div class="card-num">C07</div>
+        <div class="card-info">
+          <div class="card-title">Unrestricted File Upload</div>
+          <div class="card-sub">PHP 8</div>
+        </div>
+      </div>
+      <p class="card-desc">Formulaire d'upload d'avatar ne validant que l'extension côté client. Uploadez un webshell PHP et exécutez des commandes.</p>
+      <div class="card-footer">
+        <span class="tag">A04:2021</span>
+        <span class="tag">webshell</span>
+        <span class="tag">bypass</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C08 LFI -->
+    <a class="card" href="/c08/" style="--accent:var(--amber)">
+      <div class="card-top">
+        <div class="card-num">C08</div>
+        <div class="card-info">
+          <div class="card-title">LFI / Path Traversal</div>
+          <div class="card-sub">PHP 8</div>
+        </div>
+      </div>
+      <p class="card-desc">Paramètre <code style="font-family:var(--mono);font-size:11px;color:var(--amber)">?page=</code> injecté dans un <code style="font-family:var(--mono);font-size:11px;color:var(--amber)">include()</code>. Lisez <code style="font-family:var(--mono);font-size:11px">/etc/passwd</code> via traversal.</p>
+      <div class="card-footer">
+        <span class="tag">A05:2021</span>
+        <span class="tag">LFI</span>
+        <span class="tag">traversal</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C09 Crypto -->
+    <a class="card" href="/c09/" style="--accent:var(--teal)">
+      <div class="card-top">
+        <div class="card-num">C09</div>
+        <div class="card-info">
+          <div class="card-title">Weak Cryptography</div>
+          <div class="card-sub">Python · Flask</div>
+        </div>
+      </div>
+      <p class="card-desc">Mots de passe hashés en MD5 non salé + token d'API encodé en ROT13. Craquez les hashes et forgez un token valide.</p>
+      <div class="card-footer">
+        <span class="tag">A02:2021</span>
+        <span class="tag">MD5</span>
+        <span class="tag">hashcat</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C10 JWT -->
+    <a class="card" href="/c10/" style="--accent:var(--teal)">
+      <div class="card-top">
+        <div class="card-num">C10</div>
+        <div class="card-info">
+          <div class="card-title">JWT Forgery</div>
+          <div class="card-sub">Node.js · jsonwebtoken</div>
+        </div>
+      </div>
+      <p class="card-desc">API JWT acceptant l'algorithme <code style="font-family:var(--mono);font-size:11px;color:var(--teal)">none</code> et utilisant un secret faible. Forgez un token admin.</p>
+      <div class="card-footer">
+        <span class="tag">A02:2021</span>
+        <span class="tag">JWT</span>
+        <span class="tag">alg:none</span>
+        <span class="diff medium">Intermédiaire</span>
+      </div>
+    </a>
+
+    <!-- C11 SSRF -->
+    <a class="card" href="/c11/" style="--accent:var(--blue)">
+      <div class="card-top">
+        <div class="card-num">C11</div>
+        <div class="card-info">
+          <div class="card-title">Server-Side Request Forgery</div>
+          <div class="card-sub">Python · Flask</div>
+        </div>
+      </div>
+      <p class="card-desc">Outil de prévisualisation d'URL faisant des requêtes serveur sans validation. Accédez aux services internes via <code style="font-family:var(--mono);font-size:11px;color:var(--blue)">http://localhost</code>.</p>
+      <div class="card-footer">
+        <span class="tag">A10:2021</span>
+        <span class="tag">SSRF</span>
+        <span class="tag">internal</span>
+        <span class="diff medium">Intermédiaire</span>
+      </div>
+    </a>
+
+    <!-- C12 XXE -->
+    <a class="card" href="/c12/" style="--accent:var(--blue)">
+      <div class="card-top">
+        <div class="card-num">C12</div>
+        <div class="card-info">
+          <div class="card-title">XML External Entity (XXE)</div>
+          <div class="card-sub">Python · lxml</div>
+        </div>
+      </div>
+      <p class="card-desc">Parser XML vulnérable qui résout les entités externes. Lisez des fichiers locaux ou déclenchez un SSRF via une DTD malveillante.</p>
+      <div class="card-footer">
+        <span class="tag">A05:2021</span>
+        <span class="tag">XXE</span>
+        <span class="tag">DTD</span>
+        <span class="diff medium">Intermédiaire</span>
+      </div>
+    </a>
+
+    <!-- C13 IDOR API -->
+    <a class="card" href="/c13/" style="--accent:var(--pink)">
+      <div class="card-top">
+        <div class="card-num">C13</div>
+        <div class="card-info">
+          <div class="card-title">IDOR — API REST</div>
+          <div class="card-sub">Node.js · MongoDB</div>
+        </div>
+      </div>
+      <p class="card-desc">API de gestion de commandes exposant les ObjectID MongoDB. Accédez aux commandes des autres utilisateurs en manipulant l'ID.</p>
+      <div class="card-footer">
+        <span class="tag">A01:2021</span>
+        <span class="tag">MongoDB</span>
+        <span class="tag">REST</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C14 CSRF -->
+    <a class="card" href="/c14/" style="--accent:var(--pink)">
+      <div class="card-top">
+        <div class="card-num">C14</div>
+        <div class="card-info">
+          <div class="card-title">Cross-Site Request Forgery</div>
+          <div class="card-sub">PHP · Sessions</div>
+        </div>
+      </div>
+      <p class="card-desc">Formulaire de changement d'email sans token CSRF. Forgez une page malveillante pour modifier l'email d'un admin connecté.</p>
+      <div class="card-footer">
+        <span class="tag">A01:2021</span>
+        <span class="tag">CSRF</span>
+        <span class="tag">SameSite</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+    <!-- C15 CMDi -->
+    <a class="card" href="/c15/" style="--accent:var(--green)">
+      <div class="card-top">
+        <div class="card-num">C15</div>
+        <div class="card-info">
+          <div class="card-title">Command Injection</div>
+          <div class="card-sub">Python · Flask</div>
+        </div>
+      </div>
+      <p class="card-desc">Outil de diagnostic réseau (ping) passant l'input dans <code style="font-family:var(--mono);font-size:11px;color:var(--green)">os.system()</code>. Injectez des commandes shell arbitraires.</p>
+      <div class="card-footer">
+        <span class="tag">A03:2021</span>
+        <span class="tag">os.system</span>
+        <span class="tag">RCE</span>
+        <span class="diff easy">Débutant</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <span>VulnLab</span> — usage strictement local &amp; éducatif · Ne jamais exposer sur internet
+    <span style="color:var(--muted)">$ ./vulnlab --start<span class="cursor"></span></span>
+  </footer>
+
+</div>
+</body>
+</html>

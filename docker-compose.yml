@@ -1,0 +1,245 @@
+version: "3.9"
+
+networks:
+  vulnlab_net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  mongo_data:
+  postgres_data:
+
+services:
+
+  # ─────────────────────────────────────────────
+  # REVERSE PROXY — point d'entrée unique
+  # ─────────────────────────────────────────────
+  proxy:
+    image: nginx:alpine
+    container_name: vulnlab_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy/conf.d:/etc/nginx/conf.d:ro
+      - ./dashboard:/usr/share/nginx/html:ro
+    networks:
+      - vulnlab_net
+    depends_on:
+      - c01-sqli
+      - c02-xss
+      - c03-ssti
+      - c04-broken-auth
+      - c05-brute
+      - c06-idor-auth
+      - c07-upload
+      - c08-lfi
+      - c09-crypto
+      - c10-jwt
+      - c11-ssrf
+      - c12-xxe
+      - c13-idor
+      - c14-csrf
+      - c15-cmdi
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # BASES DE DONNÉES
+  # ─────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: vulnlab_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: vulnlab
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./c01-sqli/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6
+    container_name: vulnlab_mongo
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: vulnlab_postgres
+    environment:
+      POSTGRES_USER: vulnlab
+      POSTGRES_PASSWORD: vulnlab
+      POSTGRES_DB: vulnlab
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C01 — SQL Injection (PHP + MySQL)
+  # ─────────────────────────────────────────────
+  c01-sqli:
+    build: ./c01-sqli
+    container_name: vulnlab_c01
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: vulnlab
+    networks:
+      - vulnlab_net
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C02 — XSS Stored & Reflected (Node.js + Express)
+  # ─────────────────────────────────────────────
+  c02-xss:
+    build: ./c02-xss
+    container_name: vulnlab_c02
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C03 — SSTI Jinja2 (Python Flask)
+  # ─────────────────────────────────────────────
+  c03-ssti:
+    build: ./c03-ssti
+    container_name: vulnlab_c03
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C04 — Broken Authentication (PHP)
+  # ─────────────────────────────────────────────
+  c04-broken-auth:
+    build: ./c04-broken-auth
+    container_name: vulnlab_c04
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C05 — Brute Force sans rate-limiting (Node.js)
+  # ─────────────────────────────────────────────
+  c05-brute:
+    build: ./c05-brute
+    container_name: vulnlab_c05
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C06 — IDOR Auth (Python Flask)
+  # ─────────────────────────────────────────────
+  c06-idor-auth:
+    build: ./c06-idor-auth
+    container_name: vulnlab_c06
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C07 — File Upload (PHP)
+  # ─────────────────────────────────────────────
+  c07-upload:
+    build: ./c07-upload
+    container_name: vulnlab_c07
+    volumes:
+      - ./c07-upload/src/uploads:/var/www/html/uploads
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C08 — LFI / RFI (PHP)
+  # ─────────────────────────────────────────────
+  c08-lfi:
+    build: ./c08-lfi
+    container_name: vulnlab_c08
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C09 — Weak Crypto MD5/ROT13 (Python)
+  # ─────────────────────────────────────────────
+  c09-crypto:
+    build: ./c09-crypto
+    container_name: vulnlab_c09
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C10 — JWT Forgery (Node.js)
+  # ─────────────────────────────────────────────
+  c10-jwt:
+    build: ./c10-jwt
+    container_name: vulnlab_c10
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C11 — SSRF (Python Flask)
+  # ─────────────────────────────────────────────
+  c11-ssrf:
+    build: ./c11-ssrf
+    container_name: vulnlab_c11
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C12 — XXE (Python Flask simulant un parser XML)
+  # ─────────────────────────────────────────────
+  c12-xxe:
+    build: ./c12-xxe
+    container_name: vulnlab_c12
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C13 — IDOR API (Node.js + MongoDB)
+  # ─────────────────────────────────────────────
+  c13-idor:
+    build: ./c13-idor
+    container_name: vulnlab_c13
+    environment:
+      MONGO_URL: mongodb://mongo:27017/vulnlab
+    networks:
+      - vulnlab_net
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C14 — CSRF (PHP)
+  # ─────────────────────────────────────────────
+  c14-csrf:
+    build: ./c14-csrf
+    container_name: vulnlab_c14
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # C15 — Command Injection (Python Flask)
+  # ─────────────────────────────────────────────
+  c15-cmdi:
+    build: ./c15-cmdi
+    container_name: vulnlab_c15
+    networks:
+      - vulnlab_net
+    restart: unless-stopped
