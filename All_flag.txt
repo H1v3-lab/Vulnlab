@@ -3,7 +3,7 @@
 | # | Vuln | Stack | Flag |
 |---|------|-------|------|
 | C01 | SQL Injection | PHP + MySQL | `FLAG{sql1_1nj3ct10n_byp4ss_succ3ss}` |
-| C02 | XSS Stored/Reflected | Node.js | `FLAG{xss_c00k13_st3al1ng_ftw}` |
+| C02 | XSS Reflected + Admin Bot | Node.js | `FLAG{fl0r4l_l34k_xss_b0t_4dm1n_r3p0rt}` |
 | C03 | SSTI Jinja2 → RCE | Python Flask | `FLAG{sst1_j1nj4_rc3_p0wn3d}` |
 | C04 | Broken Auth / Cookie | PHP | `FLAG{br0k3n_4uth_c00k13_t4mp3r}` |
 | C05 | Brute Force no rate-limit | Node.js | `FLAG{br0t3_f0rc3_n0_r4t3_l1m1t}` |
