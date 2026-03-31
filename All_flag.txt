@@ -1,0 +1,21 @@
+**Récapitulatif des 15 challenges codés :**
+
+| # | Vuln | Stack | Flag |
+|---|------|-------|------|
+| C01 | SQL Injection | PHP + MySQL | `FLAG{sql1_1nj3ct10n_byp4ss_succ3ss}` |
+| C02 | XSS Stored/Reflected | Node.js | `FLAG{xss_c00k13_st3al1ng_ftw}` |
+| C03 | SSTI Jinja2 → RCE | Python Flask | `FLAG{sst1_j1nj4_rc3_p0wn3d}` |
+| C04 | Broken Auth / Cookie | PHP | `FLAG{br0k3n_4uth_c00k13_t4mp3r}` |
+| C05 | Brute Force no rate-limit | Node.js | `FLAG{br0t3_f0rc3_n0_r4t3_l1m1t}` |
+| C06 | IDOR profils séquentiels | Python Flask | `FLAG{1d0r_s3qu3nt14l_1d_byp4ss}` |
+| C07 | File Upload → Webshell | PHP | `FLAG{unr3str1ct3d_upl04d_w3bsh3ll}` |
+| C08 | LFI / Path Traversal | PHP | `FLAG{lf1_p4th_tr4v3rs4l_r34d}` |
+| C09 | Weak Crypto MD5 + ROT13 | Python Flask | `FLAG{w34k_crypt0_md5_r0t13_byp4ss}` |
+| C10 | JWT alg:none + secret faible | Node.js | `FLAG{jwt_4lg_n0n3_4nd_w34k_s3cr3t}` |
+| C11 | SSRF → service interne + IMDS | Python Flask | `FLAG{ssrf_1nt3rn4l_s3rv1c3_4cc3ss}` |
+| C12 | XXE → lecture fichiers | Python lxml | `FLAG{xxe_3xt3rn4l_3nt1ty_r34d}` |
+| C13 | IDOR API MongoDB | Node.js + Mongo | `FLAG{1d0r_m0ng0db_0rd3r_l34k}` |
+| C14 | CSRF → hijack email | PHP + attacker.php | `FLAG{csrf_n0_t0k3n_3m41l_h1j4ck}` |
+| C15 | Command Injection shell=True | Python Flask | `FLAG{cmd_1nj3ct10n_0s_syst3m_pwn3d}` |
+
+---
