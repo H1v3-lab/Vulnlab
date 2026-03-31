@@ -29,9 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ⚠️  VULNÉRABILITÉ INTENTIONNELLE : concaténation directe sans échappement
         $query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
 
-        // On expose la requête dans un commentaire HTML pour aider l'apprenant
-        $debug_query = htmlspecialchars($query);
-
         $result = mysqli_query($conn, $query);
 
         if ($result && mysqli_num_rows($result) > 0) {
@@ -324,16 +321,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <button type="submit" class="btn">Se connecter</button>
   </form>
-  <?php endif; ?>
-
-  <?php if (isset($debug_query)): ?>
-  <!-- ── Debug pédagogique ── -->
-  <div class="debug-box">
-    <div class="debug-label">🔍 Requête SQL générée</div>
-    <span class="kw">SELECT</span> * <span class="kw">FROM</span> users
-    <span class="kw">WHERE</span> username = <span class="str">'<?= htmlspecialchars($_POST['username'] ?? '') ?>'</span>
-    <span class="kw">AND</span> password = <span class="str">'<?= htmlspecialchars($_POST['password'] ?? '') ?>'</span>
-  </div>
   <?php endif; ?>
 
   <p class="footer-note">Problème de connexion ? Contactez le support IT</p>
