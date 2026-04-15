@@ -46,6 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
 // Lister les fichiers uploadés
 $scannedFiles = is_dir($uploadDir) ? scandir($uploadDir) : false;
 $files = is_array($scannedFiles) ? array_diff($scannedFiles, ['.','..']) : [];
+if ($scannedFiles === false && $err === '') {
+    $err = "Impossible de lire le dossier des uploads.";
+}
 ?><!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"><title>AvatarHub — Upload</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',sans-serif;background:#f5f6f8;min-height:100vh;padding:40px 24px}
