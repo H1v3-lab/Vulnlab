@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
         $dest = $uploadDir . '/' . $name;
         $uploadErrorCode = $file['error'] ?? UPLOAD_ERR_OK;
         if ($uploadErrorCode !== UPLOAD_ERR_OK) {
-            $err = array_key_exists($uploadErrorCode, $uploadErrors)
+            $err = isset($uploadErrors[$uploadErrorCode])
                 ? $uploadErrors[$uploadErrorCode]
                 : "Échec de l'upload.";
         } elseif (!is_dir($uploadDir)) {
