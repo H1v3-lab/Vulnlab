@@ -12,7 +12,7 @@ app = Flask(
     __name__,
     template_folder=os.path.join(BASE_DIR, 'templates'),
     static_folder=os.path.join(BASE_DIR, 'static'),
-    static_url_path='/static',
+    static_url_path='/c03/static',
 )
 app.secret_key = 'vulnlab-c03-not-secret'
 app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1)
