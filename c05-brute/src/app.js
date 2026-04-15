@@ -42,8 +42,6 @@ app.get('/', (req, res) => {
     <label>Mot de passe</label><input type="password" name="password" placeholder="••••••">
     <button type="submit" class="btn">Connexion</button>
   </form>
-  <div class="debug">⚠ Aucun rate-limiting actif<br>Tentatives : ${attempts} (jamais bloqué)<br>
-  Outil suggéré : hydra, ffuf</div>
   <!-- Hints : accès via /c05/hints uniquement -->`));
 });
 
