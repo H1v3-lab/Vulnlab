@@ -2,6 +2,7 @@
 // VulnLab C07 — Unrestricted File Upload
 // VULNÉRABILITÉ : seule l'extension est vérifiée (côté client), le MIME type n'est pas contrôlé
 $msg = ''; $err = ''; $uploaded = '';
+$uploadDir = '/var/www/html/uploads';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
     $file = $_FILES['avatar'];
@@ -14,15 +15,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
         $err = "Extension non autorisée : .$ext — seules jpg, jpeg, png, gif sont acceptées.";
     } else {
         // ⚠️  Le fichier est stocké avec son nom original dans un dossier web-accessible
-        $dest = __DIR__ . '/uploads/' . $name;
-        move_uploaded_file($file['tmp_name'], $dest);
-        $uploaded = $name;
-        $msg = "Fichier uploadé : uploads/$name";
+        $dest = $uploadDir . '/' . $name;
+        if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+            $err = "Échec de l'upload (code {$file['error']}).";
+        } elseif (!is_dir($uploadDir) || !is_writable($uploadDir)) {
+            $err = "Le dossier de destination n'est pas accessible en écriture.";
+        } elseif (!@move_uploaded_file($file['tmp_name'], $dest)) {
+            $err = "Impossible de déplacer le fichier uploadé.";
+        } else {
+            $uploaded = $name;
+            $msg = "Fichier uploadé : uploads/$name";
+        }
     }
 }
 
 // Lister les fichiers uploadés
-$files = array_diff(scandir(__DIR__ . '/uploads/'), ['.','..']);
+$files = is_dir($uploadDir) ? array_diff(scandir($uploadDir), ['.','..']) : [];
 ?><!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"><title>AvatarHub — Upload</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',sans-serif;background:#f5f6f8;min-height:100vh;padding:40px 24px}
