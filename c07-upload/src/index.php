@@ -30,7 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
             $err = array_key_exists($uploadErrorCode, $uploadErrors)
                 ? $uploadErrors[$uploadErrorCode]
                 : "Échec de l'upload.";
-        } elseif (!is_dir($uploadDir) || !is_writable($uploadDir)) {
+        } elseif (!is_dir($uploadDir)) {
+            $err = "Le dossier de destination n'existe pas.";
+        } elseif (!is_writable($uploadDir)) {
             $err = "Le dossier de destination n'est pas accessible en écriture.";
         } elseif (!move_uploaded_file($file['tmp_name'], $dest)) {
             $err = "Impossible de déplacer le fichier uploadé.";
