@@ -1,6 +1,7 @@
 # VulnLab C03 — SSTI Jinja2
 from flask import Flask, request, render_template, render_template_string
 from markupsafe import Markup
+from werkzeug.middleware.proxy_fix import ProxyFix
 import datetime
 import logging
 import os
@@ -14,6 +15,7 @@ app = Flask(
     static_url_path='/static',
 )
 app.secret_key = 'vulnlab-c03-not-secret'
+app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,11 +42,10 @@ BASE_TEMPLATE = """<!DOCTYPE html>
 <body>
 <nav class="navbar">
   <div class="nav-inner">
-    <a class="brand" href="./">ReportGen</a>
+    <a class="brand" href="{{ url_for('index') }}">ReportGen</a>
     <div class="nav-links">
-      <a href="./">Générateur</a>
-      <a href="history">Historique</a>
-      <a href="hints">Hints</a>
+      <a href="{{ url_for('index') }}">Générateur</a>
+      <a href="{{ url_for('history') }}">Historique</a>
     </div>
   </div>
 </nav>
@@ -64,7 +65,7 @@ BASE_TEMPLATE = """<!DOCTYPE html>
       </div>
       <div class="report-footer">
         Généré par ReportGen v2.1 &nbsp;·&nbsp; Confidentiel<br>
-        <a href="./">← Nouveau rapport</a>
+        <a href="{{ url_for('index') }}">← Nouveau rapport</a>
       </div>
     </div>
   </div>

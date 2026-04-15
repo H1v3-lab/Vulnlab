@@ -10,11 +10,10 @@
 
 <nav class="navbar">
   <div class="nav-inner">
-    <a class="brand" href="./">ReportGen</a>
+    <a class="brand" href="{{ url_for('index') }}">ReportGen</a>
     <div class="nav-links">
-      <a href="./">Générateur</a>
-      <a href="history" class="active">Historique</a>
-      <a href="hints">Hints</a>
+      <a href="{{ url_for('index') }}">Générateur</a>
+      <a href="{{ url_for('history') }}" class="active">Historique</a>
     </div>
     <span class="nav-badge">VulnLab C03 — SSTI</span>
   </div>
