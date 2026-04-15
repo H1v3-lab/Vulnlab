@@ -15,7 +15,7 @@
       <a href="{{ url_for('index') }}" class="active">Générateur</a>
       <a href="{{ url_for('history') }}">Historique</a>
     </div>
-    <span class="nav-badge">VulnLab C03 — SSTI</span>
+    <span class="nav-badge">VulnLab C03</span>
   </div>
 </nav>
 
@@ -27,7 +27,7 @@
       <div class="card">
         <div class="card-header">
           <h1>Générateur de rapports</h1>
-          <p>Remplissez les champs ci-dessous. Le rapport sera rendu via le moteur de templates Jinja2.</p>
+          <p>Remplissez les champs ci-dessous pour générer un rapport prêt à partager.</p>
         </div>
 
         {% if error %}
@@ -53,11 +53,10 @@
           <div class="form-group">
             <label for="body">
               Corps du rapport
-              <span class="hint-inline">⚠ Le contenu est rendu via Jinja2</span>
+              <span class="hint-inline">Ajoutez un contenu clair et structuré</span>
             </label>
-            <!-- ⚠️  Ce champ est injecté directement dans render_template_string -->
             <textarea id="body" name="body" rows="8"
-                      placeholder="Rédigez votre rapport ici…&#10;&#10;Astuce : les expressions {{ '{{ }}' }} sont interprétées par Jinja2.">{{ request.form.get('body', '') }}</textarea>
+                      placeholder="Rédigez votre rapport ici…">{{ request.form.get('body', 'Rapport annuel 2024 : synthèse des performances, objectifs atteints et axes d’amélioration.') }}</textarea>
           </div>
           <button type="submit" class="btn-submit">
             Générer le rapport →
@@ -70,8 +69,7 @@
         <div class="info-icon">ℹ</div>
         <div>
           <strong>Comment ça marche</strong>
-          <p>Le serveur utilise <code>render_template_string()</code> avec vos inputs directement interpolés.
-          Le moteur Jinja2 évalue les expressions <code>{{ "{{" }} ... {{ "}}" }}</code> avant d'envoyer la réponse.</p>
+          <p>Les informations saisies sont intégrées dans un rapport mis en forme puis affichées après soumission.</p>
         </div>
       </div>
     </div>
@@ -92,7 +90,7 @@
 <footer>
   <div class="footer-inner">
     ReportGen v2.1 &nbsp;·&nbsp;
-    <span class="vuln-badge">VulnLab C03 — SSTI Jinja2</span>
+    <span class="vuln-badge">VulnLab C03</span>
   </div>
 </footer>
 
