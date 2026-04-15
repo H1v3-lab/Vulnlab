@@ -2,6 +2,16 @@
 // VulnLab C07 — Unrestricted File Upload
 // VULNÉRABILITÉ : seule l'extension est vérifiée (côté client), le MIME type n'est pas contrôlé
 $msg = ''; $err = ''; $uploaded = '';
+$uploadDir = '/var/www/html/uploads';
+$uploadErrors = [
+    UPLOAD_ERR_INI_SIZE => "Le fichier dépasse la taille autorisée par le serveur.",
+    UPLOAD_ERR_FORM_SIZE => "Le fichier dépasse la taille autorisée par le formulaire.",
+    UPLOAD_ERR_PARTIAL => "Le fichier n'a été envoyé que partiellement.",
+    UPLOAD_ERR_NO_FILE => "Aucun fichier n'a été envoyé.",
+    UPLOAD_ERR_NO_TMP_DIR => "Dossier temporaire manquant sur le serveur.",
+    UPLOAD_ERR_CANT_WRITE => "Le serveur n'a pas pu écrire le fichier sur le disque.",
+    UPLOAD_ERR_EXTENSION => "L'envoi du fichier a été interrompu par une extension PHP."
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
     $file = $_FILES['avatar'];
@@ -14,15 +24,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
         $err = "Extension non autorisée : .$ext — seules jpg, jpeg, png, gif sont acceptées.";
     } else {
         // ⚠️  Le fichier est stocké avec son nom original dans un dossier web-accessible
-        $dest = __DIR__ . '/uploads/' . $name;
-        move_uploaded_file($file['tmp_name'], $dest);
-        $uploaded = $name;
-        $msg = "Fichier uploadé : uploads/$name";
+        $dest = $uploadDir . '/' . $name;
+        $uploadErrorCode = $file['error'] ?? UPLOAD_ERR_OK;
+        if ($uploadErrorCode !== UPLOAD_ERR_OK) {
+            $err = isset($uploadErrors[$uploadErrorCode])
+                ? $uploadErrors[$uploadErrorCode]
+                : "Échec de l'upload.";
+        } elseif (!is_dir($uploadDir)) {
+            $err = "Le dossier de destination n'existe pas.";
+        } elseif (!is_writable($uploadDir)) {
+            $err = "Le dossier de destination n'est pas accessible en écriture.";
+        } elseif (!move_uploaded_file($file['tmp_name'], $dest)) {
+            $err = "Impossible de déplacer le fichier uploadé.";
+        } else {
+            $uploaded = $name;
+            $msg = "Fichier uploadé : uploads/$name";
+        }
     }
 }
 
 // Lister les fichiers uploadés
-$files = array_diff(scandir(__DIR__ . '/uploads/'), ['.','..']);
+$scannedFiles = is_dir($uploadDir) ? scandir($uploadDir) : false;
+$files = is_array($scannedFiles) ? array_diff($scannedFiles, ['.','..']) : [];
+if ($scannedFiles === false && $err === '') {
+    $err = "Impossible de lire le dossier des uploads.";
+}
 ?><!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"><title>AvatarHub — Upload</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',sans-serif;background:#f5f6f8;min-height:100vh;padding:40px 24px}

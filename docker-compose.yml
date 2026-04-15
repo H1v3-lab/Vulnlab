@@ -154,8 +154,6 @@ services:
   c07-upload:
     build: ./c07-upload
     container_name: vulnlab_c07
-    volumes:
-      - ./c07-upload/src/uploads:/var/www/html/uploads
     networks:
       - vulnlab_net
     restart: unless-stopped
