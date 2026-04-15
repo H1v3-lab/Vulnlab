@@ -27,7 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
         $dest = $uploadDir . '/' . $name;
         $uploadErrorCode = $file['error'] ?? UPLOAD_ERR_OK;
         if ($uploadErrorCode !== UPLOAD_ERR_OK) {
-            $err = $uploadErrors[$uploadErrorCode] ?? "Échec de l'upload.";
+            $err = array_key_exists($uploadErrorCode, $uploadErrors)
+                ? $uploadErrors[$uploadErrorCode]
+                : "Échec de l'upload.";
         } elseif (!is_dir($uploadDir) || !is_writable($uploadDir)) {
             $err = "Le dossier de destination n'est pas accessible en écriture.";
         } elseif (!move_uploaded_file($file['tmp_name'], $dest)) {
@@ -40,7 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
 }
 
 // Lister les fichiers uploadés
-$files = is_dir($uploadDir) ? array_diff(scandir($uploadDir), ['.','..']) : [];
+$scannedFiles = is_dir($uploadDir) ? scandir($uploadDir) : false;
+$files = is_array($scannedFiles) ? array_diff($scannedFiles, ['.','..']) : [];
 ?><!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"><title>AvatarHub — Upload</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',sans-serif;background:#f5f6f8;min-height:100vh;padding:40px 24px}
