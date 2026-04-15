@@ -47,8 +47,6 @@ input:focus{border-color:#2d6ef7}
 .btn{width:100%;padding:12px;background:#1a3a6b;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
 .btn:hover{background:#152e56}
 .err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px}
-.debug{background:#1e1e2e;border-radius:8px;padding:14px;margin-top:20px;font-family:monospace;font-size:11px;color:#a6e3a1;line-height:1.8}
-.debug-lbl{color:#6c7086;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
 a{color:#2d6ef7;font-size:13px}
 .hint{margin-top:16px;text-align:center}
 </style></head><body>
@@ -66,12 +64,6 @@ a{color:#2d6ef7;font-size:13px}
     <input type="password" name="password" placeholder="••••••••">
     <button type="submit" class="btn">Se connecter</button>
   </form>
-  <div class="debug">
-    <div class="debug-lbl">🔍 Debug — Session ID généré</div>
-    Session ID : <?= session_id() ?><br>
-    Généré via : md5(time()) = md5(<?= time() ?>)<br>
-    Cookie role : <?= htmlspecialchars($_COOKIE['role'] ?? '(aucun)') ?>
-  </div>
   <!-- Hints : accès direct via /c04/hints.php uniquement -->
 </div>
 </body></html>
