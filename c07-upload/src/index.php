@@ -3,6 +3,15 @@
 // VULNÉRABILITÉ : seule l'extension est vérifiée (côté client), le MIME type n'est pas contrôlé
 $msg = ''; $err = ''; $uploaded = '';
 $uploadDir = '/var/www/html/uploads';
+$uploadErrors = [
+    UPLOAD_ERR_INI_SIZE => "Le fichier dépasse la taille autorisée par le serveur.",
+    UPLOAD_ERR_FORM_SIZE => "Le fichier dépasse la taille autorisée par le formulaire.",
+    UPLOAD_ERR_PARTIAL => "Le fichier n'a été envoyé que partiellement.",
+    UPLOAD_ERR_NO_FILE => "Aucun fichier n'a été envoyé.",
+    UPLOAD_ERR_NO_TMP_DIR => "Dossier temporaire manquant sur le serveur.",
+    UPLOAD_ERR_CANT_WRITE => "Le serveur n'a pas pu écrire le fichier sur le disque.",
+    UPLOAD_ERR_EXTENSION => "L'envoi du fichier a été interrompu par une extension PHP."
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
     $file = $_FILES['avatar'];
@@ -16,11 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
     } else {
         // ⚠️  Le fichier est stocké avec son nom original dans un dossier web-accessible
         $dest = $uploadDir . '/' . $name;
-        if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-            $err = "Échec de l'upload (code {$file['error']}).";
+        $uploadErrorCode = $file['error'] ?? UPLOAD_ERR_OK;
+        if ($uploadErrorCode !== UPLOAD_ERR_OK) {
+            $err = $uploadErrors[$uploadErrorCode] ?? "Échec de l'upload.";
         } elseif (!is_dir($uploadDir) || !is_writable($uploadDir)) {
             $err = "Le dossier de destination n'est pas accessible en écriture.";
-        } elseif (!@move_uploaded_file($file['tmp_name'], $dest)) {
+        } elseif (!move_uploaded_file($file['tmp_name'], $dest)) {
             $err = "Impossible de déplacer le fichier uploadé.";
         } else {
             $uploaded = $name;
