@@ -4,4 +4,5 @@ RUN mkdir -p /var/www/html/uploads \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod 775 /var/www/html/uploads
+CMD ["sh", "-c", "mkdir -p /var/www/html/uploads && chown www-data:www-data /var/www/html/uploads && chmod 775 /var/www/html/uploads && exec apache2-foreground"]
 EXPOSE 80
